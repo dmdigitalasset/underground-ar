@@ -75,7 +75,6 @@
       // Scene Viewer (Android): ar_only = langsung kamera, resizable=false = lock 1:1
       const svParams = 'file=' + encodeURIComponent(glbAbs) +
         '&mode=ar_only&resizable=false&title=' + encodeURIComponent(model.title);
-      const svHttps = 'https://arvr.google.com/scene-viewer/1.0?' + svParams;
       const svIntent = 'intent://arvr.google.com/scene-viewer/1.0?' + svParams +
         '#Intent;scheme=https;package=com.google.android.googlequicksearchbox;' +
         'action=android.intent.action.VIEW;' +
@@ -93,8 +92,11 @@
               '<path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>' +
             '</svg>Enter AR</a>' +
           '<p class="hint">Skala terkunci 1:1 (ukuran asli) · <a href="?model=' + key + '&view=3d">lihat 3D biasa</a></p>';
-        // Auto-launch — kalau diblokir browser (no gesture), tombol di atas siap
-        setTimeout(() => { location.href = isAndroid ? svHttps : usdzAbs; }, 350);
+        // Auto-launch via intent — kalau diblokir browser (butuh gesture),
+        // halaman INI tetap tampil & user tinggal 1 tap tombol Enter AR.
+        // (Jangan pakai link https://arvr.google.com dari JS — tidak memicu
+        // app, malah mendarat di halaman error Google.)
+        setTimeout(() => { location.href = target; }, 350);
       } else {
         // Desktop / fallback: 3D viewer dengan AR scale tetap fixed
         document.title = 'UNDERGROUND · ' + model.title + ' (3D)';
