@@ -59,13 +59,37 @@
       'steak-potatoes': { title: 'Steak & Potatoes',    glb: 'models/steak-potatoes.glb', usdz: 'models/steak-potatoes.usdz' },
     };
 
-    const key = new URLSearchParams(location.search).get('model');
+    const params = new URLSearchParams(location.search);
+    const key = params.get('model');
+    const force3d = params.get('view') === '3d';
     const model = MODELS[key];
     const root = document.getElementById('root');
 
     if (!model) {
       root.innerHTML = '<div id="splash"><div class="brand">Underground</div>' +
         '<h1>Model tidak ditemukan</h1><p class="hint">Model "' + (key ?? '') + '" tidak terdaftar. Cek parameter ?model= pada URL.</p></div>';
+    } else if (!force3d && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
+      // ─── iOS: anchor rel="ar" ASLI (jalur resmi Apple) ───
+      // Tap jari langsung pada <a rel="ar"> = Quick Look terbuka LANGSUNG
+      // mode AR kamera, TANPA dialog "Open this 3D model?", dan fragment
+      // #allowsContentScaling=0 dipatuhi (skala terkunci 1:1).
+      // Syarat Apple: anchor harus berisi tepat satu <img> — maka tombol
+      // emasnya digambar sebagai SVG yang dibungkus jadi <img>.
+      document.title = 'UNDERGROUND · ' + model.title;
+      const usdzHref = model.usdz + '#allowsContentScaling=0';
+      const btnSvg =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="58">' +
+        '<rect x="1" y="1" width="238" height="56" rx="28" fill="#d4a857" stroke="#fff0c8" stroke-opacity="0.6"/>' +
+        '<text x="120" y="36" font-family="Georgia, serif" font-size="19" font-weight="bold" fill="#0a0908" text-anchor="middle">◇  Enter AR</text>' +
+        '</svg>';
+      root.innerHTML = `
+        <div id="splash">
+          <div class="brand">Underground</div>
+          <h1>${model.title}</h1>
+          <a rel="ar" href="${usdzHref}"><img src="data:image/svg+xml,${encodeURIComponent(btnSvg)}" width="240" height="58" alt="Enter AR" style="display:block"/></a>
+          <p class="hint">Skala terkunci 1:1 (ukuran asli) — arahkan kamera ke meja Anda.
+            <br/><a href="?model=${key}&view=3d" style="color:#d4a857">lihat 3D biasa</a></p>
+        </div>`;
     } else {
       document.title = 'UNDERGROUND · ' + model.title;
       root.innerHTML = `
