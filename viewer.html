@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>UNDERGROUND · 3D View</title>
+  <!--
+    UNDERGROUND AR Viewer (demo) — web-based AR, repo terpisah dari app.
+    Dipanggil dari mobile app via kolom ar_url, contoh:
+      viewer.html?model=pizza
+    Android → Scene Viewer (.glb) · iPhone → AR Quick Look (.usdz)
+  -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <style>
+    :root {
+      --ink: #0a0908;
+      --ink2: #14110e;
+      --gold: #d4a857;
+      --bone: #f5ede0;
+      --mute: #b8b0a4;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      background: var(--ink);
+      color: var(--bone);
+      font-family: Georgia, 'Times New Roman', serif;
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+    }
+    header {
+      padding: max(16px, env(safe-area-inset-top)) 20px 14px;
+      text-align: center;
+      border-bottom: 1px solid rgba(212, 168, 87, 0.15);
+    }
+    .brand {
+      font-size: 11px;
+      letter-spacing: 5px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    h1 { font-size: 22px; font-weight: 400; margin-top: 6px; }
+    model-viewer {
+      flex: 1;
+      width: 100%;
+      background: radial-gradient(ellipse at center, #1c1814 0%, var(--ink) 75%);
+      --progress-bar-color: var(--gold);
+      --progress-bar-height: 3px;
+    }
+    footer {
+      padding: 14px 20px max(18px, env(safe-area-inset-bottom));
+      text-align: center;
+    }
+    .ar-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--gold);
+      color: var(--ink);
+      border: 1px solid rgba(255, 240, 200, 0.6);
+      border-radius: 999px;
+      padding: 14px 30px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      box-shadow: 0 0 24px rgba(212, 168, 87, 0.35);
+    }
+    .hint { color: var(--mute); font-size: 12px; margin-top: 10px; font-family: system-ui, sans-serif; }
+    .error {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      color: var(--mute); font-family: system-ui, sans-serif; font-size: 14px; padding: 24px; text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">Underground</div>
+    <h1 id="title">3D View</h1>
+  </header>
+
+  <div id="app" style="display: contents;"></div>
+
+  <script>
+    // Registry model demo — tambah model baru cukup tambah 1 baris
+    const MODELS = {
+      'pizza':          { title: 'Pizza',               glb: 'models/pizza.glb',          usdz: 'models/pizza.usdz' },
+      'choc-croissant': { title: 'Chocolate Croissant', glb: 'models/choc-croissant.glb', usdz: 'models/choc-croissant.usdz' },
+      'purple-cake':    { title: 'Purple Velvet Cake',  glb: 'models/purple-cake.glb',    usdz: 'models/purple-cake.usdz' },
+      'steak-potatoes': { title: 'Steak & Potatoes',    glb: 'models/steak-potatoes.glb', usdz: 'models/steak-potatoes.usdz' },
+    };
+
+    const key = new URLSearchParams(location.search).get('model');
+    const model = MODELS[key];
+    const app = document.getElementById('app');
+
+    if (!model) {
+      document.getElementById('title').textContent = 'Model tidak ditemukan';
+      app.innerHTML = '<div class="error">Model "' + (key ?? '') + '" tidak terdaftar.<br/>Cek parameter ?model= pada URL.</div>';
+    } else {
+      document.getElementById('title').textContent = model.title;
+      document.title = 'UNDERGROUND · ' + model.title;
+      app.innerHTML = `
+        <model-viewer
+          id="mv"
+          src="${model.glb}"
+          ios-src="${model.usdz}"
+          alt="${model.title}"
+          ar
+          ar-modes="scene-viewer quick-look webxr"
+          camera-controls
+          auto-rotate
+          auto-rotate-delay="1200"
+          shadow-intensity="1"
+          exposure="1.05"
+          loading="eager">
+        </model-viewer>
+        <footer>
+          <button class="ar-button" onclick="document.getElementById('mv').activateAR()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>
+            </svg>
+            View at Your Table
+          </button>
+          <p class="hint">Putar dengan satu jari · zoom dengan dua jari · tombol di atas untuk AR</p>
+        </footer>`;
+    }
+  </script>
+</body>
+</html>

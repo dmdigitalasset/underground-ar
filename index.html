@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UNDERGROUND · AR Menu Demo</title>
+  <style>
+    :root { --ink: #0a0908; --gold: #d4a857; --bone: #f5ede0; --mute: #b8b0a4; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--ink); color: var(--bone);
+      font-family: Georgia, serif; min-height: 100dvh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 48px 24px;
+    }
+    .brand { font-size: 12px; letter-spacing: 6px; color: var(--gold); text-transform: uppercase; }
+    h1 { font-weight: 400; font-size: 28px; margin: 10px 0 6px; }
+    p.sub { color: var(--mute); font-size: 13px; font-family: system-ui, sans-serif; margin-bottom: 36px; }
+    .list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 420px; }
+    a.card {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #14110e; border: 1px solid rgba(212,168,87,0.2);
+      border-radius: 14px; padding: 18px 20px;
+      color: var(--bone); text-decoration: none; font-size: 17px;
+      transition: border-color 0.2s;
+    }
+    a.card:hover { border-color: var(--gold); }
+    a.card span.go { color: var(--gold); font-family: system-ui, sans-serif; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="brand">Underground</div>
+  <h1>AR Menu Demo</h1>
+  <p class="sub">Pilih item · putar 3D · tekan "View at Your Table" untuk AR</p>
+  <div class="list">
+    <a class="card" href="viewer.html?model=pizza">Pizza <span class="go">3D / AR →</span></a>
+    <a class="card" href="viewer.html?model=steak-potatoes">Steak &amp; Potatoes <span class="go">3D / AR →</span></a>
+    <a class="card" href="viewer.html?model=purple-cake">Purple Velvet Cake <span class="go">3D / AR →</span></a>
+    <a class="card" href="viewer.html?model=choc-croissant">Chocolate Croissant <span class="go">3D / AR →</span></a>
+  </div>
+</body>
+</html>
