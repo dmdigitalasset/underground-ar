@@ -71,7 +71,7 @@
       root.innerHTML = `
         <model-viewer id="mv"
           src="${model.glb}" ios-src="${model.usdz}" alt="${model.title}"
-          ar ar-modes="webxr scene-viewer quick-look" ar-scale="fixed"
+          ar ar-modes="scene-viewer webxr quick-look" ar-scale="fixed"
           camera-controls auto-rotate shadow-intensity="1" exposure="1.05" loading="eager">
         </model-viewer>
         <div id="splash">
@@ -93,13 +93,17 @@
       const btnLabel = document.getElementById('btnLabel');
       const hint = document.getElementById('hint');
 
+      const HINT_READY =
+        'Skala terkunci 1:1 (ukuran asli). Setelah kamera terbuka, ' +
+        'gerakkan HP perlahan ke arah meja sampai objek menempel.';
+
       mv.addEventListener('load', () => {
         if (mv.canActivateAR) {
           btn.disabled = false;
           btnLabel.textContent = 'Enter AR';
-          hint.textContent = 'Skala terkunci 1:1 (ukuran asli) — arahkan kamera ke meja Anda';
+          hint.textContent = HINT_READY;
         } else {
-          // Device tanpa AR → buka overlay, tunjukkan 3D sebagai fallback
+          // Device tanpa AR sama sekali → fallback 3D viewer
           splash.classList.add('hidden');
           setTimeout(() => splash.remove(), 400);
         }
@@ -111,11 +115,16 @@
 
       mv.addEventListener('ar-status', (e) => {
         if (e.detail.status === 'session-started' || e.detail.status === 'object-placed') {
-          // AR jalan → sembunyikan splash; saat keluar AR user lihat 3D
+          // AR berjalan → splash disembunyikan (TIDAK dihapus)
           splash.classList.add('hidden');
-          setTimeout(() => splash.remove(), 400);
+        } else if (e.detail.status === 'not-presenting') {
+          // Keluar dari AR → KEMBALI ke layar Enter AR, bukan ke 3D
+          splash.classList.remove('hidden');
+          hint.textContent = HINT_READY;
         } else if (e.detail.status === 'failed') {
-          hint.textContent = 'AR gagal dimulai — pastikan "Google Play Services for AR" terinstall, lalu coba lagi.';
+          splash.classList.remove('hidden');
+          hint.textContent =
+            'AR gagal dimulai — pastikan "Google Play Services for AR" terinstall dari Play Store, lalu tap Enter AR lagi.';
         }
       });
     }
