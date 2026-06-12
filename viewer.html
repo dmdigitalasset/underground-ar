@@ -3,88 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>UNDERGROUND · 3D View</title>
+  <title>UNDERGROUND · AR</title>
   <!--
-    UNDERGROUND AR Viewer (demo) — web-based AR, repo terpisah dari app.
-    Dipanggil dari mobile app via kolom ar_url, contoh:
-      viewer.html?model=pizza
-    Android → Scene Viewer (.glb) · iPhone → AR Quick Look (.usdz)
+    UNDERGROUND AR Launcher (demo) — langsung ke AR, tanpa 3D viewer.
+    Dipanggil dari mobile app via ar_url: viewer.html?model=pizza
+      - Android → Scene Viewer mode ar_only, resizable=false (skala LOCK 1:1)
+      - iOS     → AR Quick Look (.usdz) + allowsContentScaling=0 (LOCK 1:1)
+      - Desktop / ?view=3d → fallback 3D viewer (model-viewer, ar-scale fixed)
+    Auto-launch dicoba saat halaman dibuka; kalau browser memblokir
+    (butuh gesture), user tinggal 1 tap tombol "Enter AR".
   -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
   <style>
-    :root {
-      --ink: #0a0908;
-      --ink2: #14110e;
-      --gold: #d4a857;
-      --bone: #f5ede0;
-      --mute: #b8b0a4;
-    }
+    :root { --ink: #0a0908; --gold: #d4a857; --bone: #f5ede0; --mute: #b8b0a4; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; }
     body {
-      background: var(--ink);
-      color: var(--bone);
-      font-family: Georgia, 'Times New Roman', serif;
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
+      background: radial-gradient(ellipse at center, #1c1814 0%, var(--ink) 80%);
+      color: var(--bone); font-family: Georgia, serif;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100dvh; text-align: center; padding: 24px;
     }
-    header {
-      padding: max(16px, env(safe-area-inset-top)) 20px 14px;
-      text-align: center;
-      border-bottom: 1px solid rgba(212, 168, 87, 0.15);
-    }
-    .brand {
-      font-size: 11px;
-      letter-spacing: 5px;
-      color: var(--gold);
-      text-transform: uppercase;
-    }
-    h1 { font-size: 22px; font-weight: 400; margin-top: 6px; }
-    model-viewer {
-      flex: 1;
-      width: 100%;
-      background: radial-gradient(ellipse at center, #1c1814 0%, var(--ink) 75%);
-      --progress-bar-color: var(--gold);
-      --progress-bar-height: 3px;
-    }
-    footer {
-      padding: 14px 20px max(18px, env(safe-area-inset-bottom));
-      text-align: center;
-    }
+    .brand { font-size: 11px; letter-spacing: 5px; color: var(--gold); text-transform: uppercase; }
+    h1 { font-size: 26px; font-weight: 400; margin: 10px 0 26px; }
     .ar-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--gold);
-      color: var(--ink);
-      border: 1px solid rgba(255, 240, 200, 0.6);
-      border-radius: 999px;
-      padding: 14px 30px;
-      font-family: inherit;
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 0.4px;
-      cursor: pointer;
-      box-shadow: 0 0 24px rgba(212, 168, 87, 0.35);
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--gold); color: var(--ink);
+      border: 1px solid rgba(255,240,200,0.6); border-radius: 999px;
+      padding: 16px 34px; font-family: inherit; font-size: 17px; font-weight: 700;
+      letter-spacing: 0.4px; text-decoration: none;
+      box-shadow: 0 0 28px rgba(212,168,87,0.4);
+      animation: pulse 2.8s ease-in-out infinite;
     }
-    .hint { color: var(--mute); font-size: 12px; margin-top: 10px; font-family: system-ui, sans-serif; }
-    .error {
-      flex: 1; display: flex; align-items: center; justify-content: center;
-      color: var(--mute); font-family: system-ui, sans-serif; font-size: 14px; padding: 24px; text-align: center;
-    }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    .hint { color: var(--mute); font-size: 12px; margin-top: 16px; font-family: system-ui, sans-serif; }
+    .hint a { color: var(--gold); }
+    .error { color: var(--mute); font-family: system-ui, sans-serif; font-size: 14px; }
+    model-viewer { width: 100%; height: 100dvh; --progress-bar-color: var(--gold); }
   </style>
 </head>
 <body>
-  <header>
+  <div id="app">
     <div class="brand">Underground</div>
-    <h1 id="title">3D View</h1>
-  </header>
-
-  <div id="app" style="display: contents;"></div>
+    <h1 id="title">AR</h1>
+  </div>
 
   <script>
-    // Registry model demo — tambah model baru cukup tambah 1 baris
     const MODELS = {
       'pizza':          { title: 'Pizza',               glb: 'models/pizza.glb',          usdz: 'models/pizza.usdz' },
       'choc-croissant': { title: 'Chocolate Croissant', glb: 'models/choc-croissant.glb', usdz: 'models/choc-croissant.usdz' },
@@ -92,41 +55,58 @@
       'steak-potatoes': { title: 'Steak & Potatoes',    glb: 'models/steak-potatoes.glb', usdz: 'models/steak-potatoes.usdz' },
     };
 
-    const key = new URLSearchParams(location.search).get('model');
+    const params = new URLSearchParams(location.search);
+    const key = params.get('model');
+    const force3d = params.get('view') === '3d';
     const model = MODELS[key];
     const app = document.getElementById('app');
 
     if (!model) {
-      document.getElementById('title').textContent = 'Model tidak ditemukan';
-      app.innerHTML = '<div class="error">Model "' + (key ?? '') + '" tidak terdaftar.<br/>Cek parameter ?model= pada URL.</div>';
+      app.innerHTML = '<div class="brand">Underground</div><h1>Model tidak ditemukan</h1>' +
+        '<p class="error">Model "' + (key ?? '') + '" tidak terdaftar. Cek parameter ?model= pada URL.</p>';
     } else {
-      document.getElementById('title').textContent = model.title;
-      document.title = 'UNDERGROUND · ' + model.title;
-      app.innerHTML = `
-        <model-viewer
-          id="mv"
-          src="${model.glb}"
-          ios-src="${model.usdz}"
-          alt="${model.title}"
-          ar
-          ar-modes="scene-viewer quick-look webxr"
-          camera-controls
-          auto-rotate
-          auto-rotate-delay="1200"
-          shadow-intensity="1"
-          exposure="1.05"
-          loading="eager">
-        </model-viewer>
-        <footer>
-          <button class="ar-button" onclick="document.getElementById('mv').activateAR()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-              <path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>
-            </svg>
-            View at Your Table
-          </button>
-          <p class="hint">Putar dengan satu jari · zoom dengan dua jari · tombol di atas untuk AR</p>
-        </footer>`;
+      const base = location.href.split('?')[0].replace(/\/[^\/]*$/, '/');
+      const glbAbs = base + model.glb;
+      const usdzAbs = base + model.usdz + '#allowsContentScaling=0'; // iOS: lock skala 1:1
+      const ua = navigator.userAgent;
+      const isAndroid = /android/i.test(ua);
+      const isIOS = /iPad|iPhone|iPod/.test(ua);
+
+      // Scene Viewer (Android): ar_only = langsung kamera, resizable=false = lock 1:1
+      const svParams = 'file=' + encodeURIComponent(glbAbs) +
+        '&mode=ar_only&resizable=false&title=' + encodeURIComponent(model.title);
+      const svHttps = 'https://arvr.google.com/scene-viewer/1.0?' + svParams;
+      const svIntent = 'intent://arvr.google.com/scene-viewer/1.0?' + svParams +
+        '#Intent;scheme=https;package=com.google.android.googlequicksearchbox;' +
+        'action=android.intent.action.VIEW;' +
+        'S.browser_fallback_url=' + encodeURIComponent(location.href.split('?')[0] + '?model=' + key + '&view=3d') + ';end';
+
+      if (!force3d && (isAndroid || isIOS)) {
+        const target = isAndroid ? svIntent : usdzAbs;
+        document.title = 'UNDERGROUND · ' + model.title;
+        app.innerHTML =
+          '<div class="brand">Underground</div>' +
+          '<h1>' + model.title + '</h1>' +
+          '<a class="ar-button" href="' + target + '">' +
+            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">' +
+              '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>' +
+              '<path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>' +
+            '</svg>Enter AR</a>' +
+          '<p class="hint">Skala terkunci 1:1 (ukuran asli) · <a href="?model=' + key + '&view=3d">lihat 3D biasa</a></p>';
+        // Auto-launch — kalau diblokir browser (no gesture), tombol di atas siap
+        setTimeout(() => { location.href = isAndroid ? svHttps : usdzAbs; }, 350);
+      } else {
+        // Desktop / fallback: 3D viewer dengan AR scale tetap fixed
+        document.title = 'UNDERGROUND · ' + model.title + ' (3D)';
+        const s = document.createElement('script');
+        s.type = 'module';
+        s.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
+        document.head.appendChild(s);
+        document.body.innerHTML =
+          '<model-viewer src="' + model.glb + '" ios-src="' + model.usdz + '" alt="' + model.title + '"' +
+          ' ar ar-modes="scene-viewer quick-look webxr" ar-scale="fixed"' +
+          ' camera-controls auto-rotate shadow-intensity="1" exposure="1.05" loading="eager"></model-viewer>';
+      }
     }
   </script>
 </body>
